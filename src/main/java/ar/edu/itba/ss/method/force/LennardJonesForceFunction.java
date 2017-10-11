@@ -1,4 +1,4 @@
-package ar.edu.itba.ss.method;
+package ar.edu.itba.ss.method.force;
 
 import static java.lang.Math.pow;
 

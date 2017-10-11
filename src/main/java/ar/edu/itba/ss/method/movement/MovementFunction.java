@@ -1,4 +1,4 @@
-package ar.edu.itba.ss.method;
+package ar.edu.itba.ss.method.movement;
 
 import ar.edu.itba.ss.model.Neighbour;
 import ar.edu.itba.ss.model.Particle;

@@ -1,4 +1,4 @@
-package ar.edu.itba.ss.method;
+package ar.edu.itba.ss.method.movement;
 
 import static java.util.Objects.requireNonNull;
 

@@ -1,6 +1,6 @@
 package ar.edu.itba.ss.oscilator;
 
-import ar.edu.itba.ss.method.MovementFunction;
+import ar.edu.itba.ss.method.movement.MovementFunction;
 import ar.edu.itba.ss.model.Particle;
 
 public class NumericalUDHOscillator extends AnalyticUDHOscillator {
