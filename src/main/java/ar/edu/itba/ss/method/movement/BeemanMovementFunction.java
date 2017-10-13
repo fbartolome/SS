@@ -60,4 +60,9 @@ public class BeemanMovementFunction implements MovementFunction {
         .velocity(predictedVelocity)
         .build();
   }
+
+  @Override
+  public void clearState(Particle particle) {
+    previousAcceleration = Point2D.ZERO;
+  }
 }

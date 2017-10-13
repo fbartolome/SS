@@ -43,4 +43,9 @@ public class VerletMovementFunction implements MovementFunction {
         .velocity(predictedVelocity)
         .build();
   }
+
+  @Override
+  public void clearState(Particle particle){
+    previousPosition = particle.position();
+  }
 }

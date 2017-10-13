@@ -26,7 +26,7 @@ public class GranularMediaSimulator implements Simulator{
     private final double gap;
     private final CellIndexMethod cim;
     private final double rc;
-    private final Map<Particle, MovementFunction> movementFunctions;
+    private Map<Particle, MovementFunction> movementFunctions;
 
     public GranularMediaSimulator(List<Particle> initialParticles, double dt, int writerIteration, double boxWidth,
                                   double boxHeight, double gap, double rc,
@@ -98,8 +98,17 @@ public class GranularMediaSimulator implements Simulator{
     }
 
     private Particle particleToTop(Particle particle) {
-        //TODO
-        return particle;
+        Random r = new Random();
+        Particle topParticle = ImmutableParticle.builder()
+                .from(particle)
+                .position(new Point2D(r.nextDouble() * boxWidth,boxTop))
+                .velocity(Point2D.ZERO)
+                .build();
+        //TODO: check overlapping
+        movementFunctions.get(topParticle).clearState(topParticle);
+        movementFunctions.put(topParticle,
+                movementFunctions.get(topParticle));
+        return topParticle;
     }
 
     private void addWallParticles(Particle particle, Set<Neighbour> neighbours) {
