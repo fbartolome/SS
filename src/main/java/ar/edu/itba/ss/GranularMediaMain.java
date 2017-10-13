@@ -26,10 +26,11 @@ public class GranularMediaMain {
   private static final double MIN_RADIUS = 0.01;
   private static final double MASS = 0.01;
   private static final int N = 1;
-  private static final double DT = 0.00001;
-  private static final int WRITER_ITERATIONS = (int) (1 / DT) / 10;
   private static final double KN = 100000;
   private static final double KT = 2 * KN;
+  private static final double DT = 0.00001;
+  //  private static final double DT = 0.1 * Math.sqrt(MASS / KN);
+  private static final int WRITER_ITERATIONS = (int) (1 / DT) / 10;
 
   public static void main(String[] args) {
     Particle minParticle = ImmutableParticle.builder()
