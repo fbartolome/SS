@@ -62,6 +62,6 @@ public class ContactForceFunction implements BiFunction<Particle, Set<Neighbour>
     }
 
     private double calculatePsi(Particle particle, Neighbour neighbour){
-        return particle.radius() + neighbour.getNeighbourParticle().radius() - neighbour.getDistance();
+        return Math.abs(neighbour.getDistance());
     }
 }

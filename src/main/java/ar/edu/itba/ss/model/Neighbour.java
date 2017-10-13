@@ -8,9 +8,9 @@ public class Neighbour {
   private final double distance;
 
   public Neighbour(final Particle neighbourParticle, final double distance) {
-    if (distance < 0) {
-      throw new IllegalArgumentException("Distance can't be less than 0");
-    }
+//    if (distance < 0) {
+//      throw new IllegalArgumentException("Distance can't be less than 0");
+//    }
 
     this.neighbourParticle = Objects.requireNonNull(neighbourParticle);
     this.distance = distance;

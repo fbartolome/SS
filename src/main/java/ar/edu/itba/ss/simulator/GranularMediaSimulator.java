@@ -25,11 +25,10 @@ public class GranularMediaSimulator implements Simulator{
     private final double boxBottom;
     private final double gap;
     private final CellIndexMethod cim;
-    private final double rc;
     private Map<Particle, MovementFunction> movementFunctions;
 
     public GranularMediaSimulator(List<Particle> initialParticles, double dt, int writerIteration, double boxWidth,
-                                  double boxHeight, double gap, double rc,
+                                  double boxHeight, double gap,
                                   Map<Particle, MovementFunction> movementFunctions) {
         this.initialParticles = initialParticles;
         this.amountOfParticles = initialParticles.size();
@@ -41,7 +40,6 @@ public class GranularMediaSimulator implements Simulator{
         this.boxBottom = boxTop - boxHeight;
         this.gap = gap;
         this.cim = new CellIndexMethod(boxTop, false);
-        this.rc = rc;
         this.movementFunctions = movementFunctions;
     }
 
@@ -54,8 +52,11 @@ public class GranularMediaSimulator implements Simulator{
 
         while (!endCriteria.test(time, particles)) {
             Map<Particle, Set<Neighbour>> neighbours = cim
-                    .apply(particles, maxRadius, rc);
+                    .apply(particles, maxRadius, 0);
             particles = nextParticles(neighbours);
+            System.out.println("AVG VELOCITY: " + particles.stream().mapToDouble(p -> p.velocity().magnitude()).average().getAsDouble());
+            System.out.println("MIN POSITION: " + particles.stream().mapToDouble(p -> p.position().getX()).min().getAsDouble() + ", " + particles.stream().mapToDouble(p -> p.position().getY()).min().getAsDouble());
+            System.out.println("MAX POSITION: " + particles.stream().mapToDouble(p -> p.position().getX()).max().getAsDouble() + ", " + particles.stream().mapToDouble(p -> p.position().getY()).max().getAsDouble());
 
             if (iteration == writerIteration) {
                 iteration = 0;
@@ -84,9 +85,6 @@ public class GranularMediaSimulator implements Simulator{
     }
 
     private Particle moveParticle(Particle particle, Set<Neighbour> neighbours) {
-        neighbours = neighbours.stream()
-                .filter(n -> isOverlapped(particle, n))
-                .collect(Collectors.toSet());
         addWallParticles(particle, neighbours);
 
         MovementFunction function = movementFunctions.get(particle);
@@ -171,10 +169,5 @@ public class GranularMediaSimulator implements Simulator{
                     .radius(0)
                     .velocity(Point2D.ZERO).build(), -distanceToWall));
         }
-    }
-
-    private boolean isOverlapped(Particle particle, Neighbour neighbour){
-        return particle.radius() + neighbour.getNeighbourParticle().radius()
-                > neighbour.getDistance();
     }
 }
