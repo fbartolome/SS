@@ -16,32 +16,33 @@ import java.util.stream.Collectors;
 public class GranularMediaSimulator implements Simulator{
 
     private final List<Particle> initialParticles;
+    private final int amountOfParticles;
     private final double dt;
     private final int writerIteration;
     private final double boxWidth;
     private final double boxHeight;
+    private final double boxTop;
+    private final double boxBottom;
     private final double gap;
     private final CellIndexMethod cim;
     private final double rc;
     private final Map<Particle, MovementFunction> movementFunctions;
 
-    public GranularMediaSimulator(double dt, int writerIteration, double boxWidth,
+    public GranularMediaSimulator(List<Particle> initialParticles, double dt, int writerIteration, double boxWidth,
                                   double boxHeight, double gap, double rc,
                                   Map<Particle, MovementFunction> movementFunctions) {
+        this.initialParticles = initialParticles;
+        this.amountOfParticles = initialParticles.size();
         this.dt = dt;
         this.writerIteration = writerIteration;
         this.boxWidth = boxWidth;
         this.boxHeight = boxHeight;
+        this.boxTop = boxHeight * 1.1;
+        this.boxBottom = boxTop - boxHeight;
         this.gap = gap;
-        this.cim = new CellIndexMethod(boxHeight > boxWidth ? boxHeight : boxWidth, false);
+        this.cim = new CellIndexMethod(boxTop, false);
         this.rc = rc;
         this.movementFunctions = movementFunctions;
-        this.initialParticles = initiateParticles();
-    }
-
-    private List<Particle> initiateParticles() {
-        //TODO
-        return new LinkedList<>();
     }
 
     @Override
@@ -49,10 +50,11 @@ public class GranularMediaSimulator implements Simulator{
         double time = 0;
         int iteration = 1;
         List<Particle> particles = initialParticles;
+        double maxRadius = particles.stream().mapToDouble(Particle::radius).max().getAsDouble();
 
         while (!endCriteria.test(time, particles)) {
             Map<Particle, Set<Neighbour>> neighbours = cim
-                    .apply(particles, particles.get(0).radius(), rc);
+                    .apply(particles, maxRadius, rc);
             particles = nextParticles(neighbours);
 
             if (iteration == writerIteration) {
@@ -87,10 +89,17 @@ public class GranularMediaSimulator implements Simulator{
                 .collect(Collectors.toSet());
         addWallParticles(particle, neighbours);
 
-        //TODO: if particle is below boxHeight/10, it should be positioned at the start of the box
-
         MovementFunction function = movementFunctions.get(particle);
-        return function.move(particle, neighbours, dt);
+        Particle movedParticle = function.move(particle, neighbours, dt);
+        if(movedParticle.position().getY() < 0){
+            return particleToTop(movedParticle);
+        }
+        return movedParticle;
+    }
+
+    private Particle particleToTop(Particle particle) {
+        //TODO
+        return particle;
     }
 
     private void addWallParticles(Particle particle, Set<Neighbour> neighbours) {
@@ -121,12 +130,12 @@ public class GranularMediaSimulator implements Simulator{
         // down wall
         double gapStart = boxWidth/2 - gap/2;
         double gapEnd = boxWidth - gapStart;
-        distanceToWall = particle.position().getY() - particle.radius();
+        distanceToWall = particle.position().getY() - particle.radius() - boxBottom;
         if(distanceToWall < 0 && particle.position().getX() < gapStart
                 && particle.position().getX() > gapEnd){
             neighbours.add(new Neighbour(ImmutableParticle.builder()
                     .id(wallId--)
-                    .position(new Point2D(particle.position().getX(), 0))
+                    .position(new Point2D(particle.position().getX(), boxBottom))
                     .mass(Double.POSITIVE_INFINITY)
                     .radius(0)
                     .velocity(Point2D.ZERO).build(), -distanceToWall));
@@ -134,7 +143,7 @@ public class GranularMediaSimulator implements Simulator{
 
         // gap start
         distanceToWall = gapStart - (particle.position().getX() - particle.radius());
-        if(distanceToWall < 0 && particle.position().getY() == 0){
+        if(distanceToWall < 0 && particle.position().getY() == boxBottom){
             neighbours.add(new Neighbour(ImmutableParticle.builder()
                     .id(wallId--)
                     .position(new Point2D(gapStart, 0))
@@ -145,7 +154,7 @@ public class GranularMediaSimulator implements Simulator{
 
         // gap end
         distanceToWall = gapEnd - (particle.position().getX() + particle.radius());
-        if(distanceToWall < 0 && particle.position().getY() == 0){
+        if(distanceToWall < 0 && particle.position().getY() == boxBottom){
             neighbours.add(new Neighbour(ImmutableParticle.builder()
                     .id(wallId--)
                     .position(new Point2D(gapEnd, 0))
