@@ -28,7 +28,7 @@ public class GranularMediaMain {
   private static final int N = 1;
   private static final double KN = 100000;
   private static final double KT = 2 * KN;
-  private static final double DT = 0.00001;
+  private static final double DT = 0.0001;
   //  private static final double DT = 0.1 * Math.sqrt(MASS / KN);
   private static final int WRITER_ITERATIONS = (int) (1 / DT) / 10;
 
@@ -45,7 +45,7 @@ public class GranularMediaMain {
         .radius(MAX_RADIUS)
         .mass(MASS)
         .velocity(Point2D.ZERO)
-        .position(new Point2D(BOX_WIDTH, BOX_TOP))
+        .position(new Point2D(BOX_WIDTH, 1.1))
         .build();
     List<Particle> initialParticles = RandomParticleGenerator.generateParticles(minParticle,
         maxParticle);

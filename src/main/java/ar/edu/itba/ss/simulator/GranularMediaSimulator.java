@@ -54,11 +54,12 @@ public class GranularMediaSimulator implements Simulator{
             Map<Particle, Set<Neighbour>> neighbours = cim
                     .apply(particles, maxRadius, 0);
             particles = nextParticles(neighbours);
-            System.out.println("AVG VELOCITY: " + particles.stream().mapToDouble(p -> p.velocity().magnitude()).average().getAsDouble());
-            System.out.println("MIN POSITION: " + particles.stream().mapToDouble(p -> p.position().getX()).min().getAsDouble() + ", " + particles.stream().mapToDouble(p -> p.position().getY()).min().getAsDouble());
-            System.out.println("MAX POSITION: " + particles.stream().mapToDouble(p -> p.position().getX()).max().getAsDouble() + ", " + particles.stream().mapToDouble(p -> p.position().getY()).max().getAsDouble());
 
             if (iteration == writerIteration) {
+                System.out.println("AVG VELOCITY: " + particles.stream().mapToDouble(p -> p.velocity().magnitude()).average().getAsDouble());
+                System.out.println("MIN POSITION: " + particles.stream().mapToDouble(p -> p.position().getX()).min().getAsDouble() + ", " + particles.stream().mapToDouble(p -> p.position().getY()).min().getAsDouble());
+                System.out.println("MAX POSITION: " + particles.stream().mapToDouble(p -> p.position().getX()).max().getAsDouble() + ", " + particles.stream().mapToDouble(p -> p.position().getY()).max().getAsDouble());
+
                 iteration = 0;
                 try {
                     writer.write(time, neighbours);
@@ -138,8 +139,8 @@ public class GranularMediaSimulator implements Simulator{
         double gapStart = boxWidth/2 - gap/2;
         double gapEnd = boxWidth - gapStart;
         distanceToWall = particle.position().getY() - particle.radius() - boxBottom;
-        if(distanceToWall < 0 && particle.position().getX() < gapStart
-                && particle.position().getX() > gapEnd){
+        if(distanceToWall < 0 && (particle.position().getX() < gapStart
+                || particle.position().getX() > gapEnd)){
             neighbours.add(new Neighbour(ImmutableParticle.builder()
                     .id(wallId--)
                     .position(new Point2D(particle.position().getX(), boxBottom))
