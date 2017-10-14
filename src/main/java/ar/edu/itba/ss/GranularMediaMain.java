@@ -17,11 +17,11 @@ import javafx.geometry.Point2D;
 
 public class GranularMediaMain {
 
-  private static final double BOX_HEIGHT = 2;
+  private static final double BOX_HEIGHT = 4;
   private static final double BOX_WIDTH = 1;
   private static final double BOX_TOP = BOX_HEIGHT * 1.1;
   private static final double BOX_BOTTOM = BOX_TOP - BOX_HEIGHT;
-  private static final double GAP = 0;
+  private static final double GAP = 0.1;
   private static final double MAX_RADIUS = 0.015;
   private static final double MIN_RADIUS = 0.01;
   private static final double MASS = 0.01;
