@@ -8,10 +8,14 @@ import ar.edu.itba.ss.model.Neighbour;
 import ar.edu.itba.ss.model.Particle;
 import ar.edu.itba.ss.model.criteria.Criteria;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
-
 import javafx.geometry.Point2D;
 
 public class GranularMediaSimulator implements Simulator {
@@ -26,6 +30,7 @@ public class GranularMediaSimulator implements Simulator {
   private final double boxBottom;
   private final double gap;
   private final CellIndexMethod cim;
+  private final double maxRadius;
   private Map<Particle, MovementFunction> movementFunctions;
 
   public GranularMediaSimulator(List<Particle> initialParticles, double dt, int writerIteration,
@@ -42,32 +47,35 @@ public class GranularMediaSimulator implements Simulator {
     this.gap = gap;
     this.cim = new CellIndexMethod(boxTop > boxWidth ? boxTop : boxWidth, false);
     this.movementFunctions = movementFunctions;
+    this.maxRadius = initialParticles.stream()
+        .mapToDouble(Particle::radius)
+        .max().getAsDouble();
   }
 
   @Override
   public Set<Particle> simulate(final Criteria endCriteria, final ParticlesWriter writer) {
-    double time = 0;
+    List<Particle> currentParticles = initialParticles;
     int iteration = 1;
-    List<Particle> particles = initialParticles;
-    double maxRadius = particles.stream().mapToDouble(Particle::radius).max().getAsDouble();
+    double time = 0;
 
-    while (!endCriteria.test(time, particles)) {
-      Map<Particle, Set<Neighbour>> neighbours = cim
-          .apply(particles, maxRadius, 0);
-      particles = nextParticles(neighbours);
+    while (!endCriteria.test(time, currentParticles)) {
+      final Map<Particle, Set<Neighbour>> neighbours = cim.apply(currentParticles, maxRadius, 0);
+      currentParticles = nextParticles(neighbours);
 
       if (iteration == writerIteration) {
         // TODO: Remove souts
         System.out.println(
-            "AVG VELOCITY: " + particles.stream().mapToDouble(p -> p.velocity().magnitude())
+            "AVG VELOCITY: " + currentParticles.stream().mapToDouble(p -> p.velocity().magnitude())
                 .average().getAsDouble());
         System.out.println(
-            "MIN POSITION: " + particles.stream().mapToDouble(p -> p.position().getX()).min()
-                .getAsDouble() + ", " + particles.stream().mapToDouble(p -> p.position().getY())
+            "MIN POSITION: " + currentParticles.stream().mapToDouble(p -> p.position().getX()).min()
+                .getAsDouble() + ", " + currentParticles.stream()
+                .mapToDouble(p -> p.position().getY())
                 .min().getAsDouble());
         System.out.println(
-            "MAX POSITION: " + particles.stream().mapToDouble(p -> p.position().getX()).max()
-                .getAsDouble() + ", " + particles.stream().mapToDouble(p -> p.position().getY())
+            "MAX POSITION: " + currentParticles.stream().mapToDouble(p -> p.position().getX()).max()
+                .getAsDouble() + ", " + currentParticles.stream()
+                .mapToDouble(p -> p.position().getY())
                 .max().getAsDouble());
 
         iteration = 0;
@@ -82,78 +90,66 @@ public class GranularMediaSimulator implements Simulator {
       iteration++;
     }
 
-    return new HashSet<>(particles);
+    return new HashSet<>(currentParticles);
   }
 
   private List<Particle> nextParticles(final Map<Particle, Set<Neighbour>> neighbours) {
     final List<Particle> nextParticles = new ArrayList<>(neighbours.size());
+    final List<Particle> moveToTopParticles = new LinkedList<>();
 
     for (final Map.Entry<Particle, Set<Neighbour>> entry : neighbours.entrySet()) {
-      moveParticle(entry.getKey(), entry.getValue(), new LinkedList<>(neighbours.keySet()), nextParticles);
+      final Particle movedParticle = moveParticle(entry.getKey(), entry.getValue());
+
+      if (movedParticle.position().getY() - maxRadius <= 0
+          || (movedParticle.position().getY() < boxBottom
+              && (movedParticle.position().getX() - movedParticle.radius() <= 0
+                  || movedParticle.position().getX() + movedParticle.radius() >= boxWidth))) {
+        moveToTopParticles.add(movedParticle);
+      } else {
+        nextParticles.add(movedParticle);
+      }
+    }
+
+    for (final Particle particle : moveToTopParticles) {
+      movementFunctions.get(particle).clearState(particle);
+      nextParticles.add(moveParticleToTop(particle, nextParticles));
     }
 
     return nextParticles;
   }
 
-  private void moveParticle(final Particle particle, final Set<Neighbour> neighbours,
-                                List<Particle> prevParticles, List<Particle> movedParticles) {
+  private Particle moveParticle(final Particle particle, final Set<Neighbour> neighbours) {
     addWallParticles(particle, neighbours);
 
-    final MovementFunction function = movementFunctions.get(particle);
-    final Particle movedParticle = function.move(particle, neighbours, dt);
-
-    if (movedParticle.position().getY() < 0) {
-      movedParticles.add(particleToTop(movedParticle, prevParticles, movedParticles));
-      return;
-    }
-
-    movedParticles.add(movedParticle);
+    return movementFunctions.get(particle).move(particle, neighbours, dt);
   }
 
-  private Particle particleToTop(final Particle particle, List<Particle> prevParticles,
-                                 List<Particle> movedParticles) {
-    boolean found = false;
-    Particle topParticle = null;
-    List<Particle> topParticles = new LinkedList<>();
-    topParticles.addAll(topParticles(particle, prevParticles));
-    topParticles.addAll(topParticles(particle, movedParticles));
+  private Particle moveParticleToTop(final Particle particle, final List<Particle> nextParticles) {
+    final List<Particle> topParticles = getTopParticles(nextParticles);
+    Particle newParticle;
 
-    while(!found){
-
+    do {
       final Point2D newPosition = new Point2D(
-              ThreadLocalRandom.current().nextDouble(particle.radius(), boxWidth - particle.radius()),
-              boxTop - particle.radius()
-      );
+          ThreadLocalRandom.current().nextDouble(particle.radius(), boxWidth - particle.radius()),
+          boxTop - particle.radius());
 
-      topParticle = ImmutableParticle.builder()
-              .from(particle)
-              .position(newPosition)
-              .velocity(Point2D.ZERO)
-              .build();
+      newParticle = ImmutableParticle.builder().from(particle)
+          .position(newPosition)
+          .velocity(Point2D.ZERO)
+          .build();
+    } while (isColliding(newParticle, topParticles));
 
-      if(!isOverlapping(topParticle,topParticles)){
-        found = true;
-      }
-    }
-
-    movementFunctions.get(particle).clearState(particle);
-    return topParticle;
+    return newParticle;
   }
 
-  private boolean isOverlapping(Particle particle, List<Particle> topParticles) {
-    for(Particle topParticle : topParticles){
-      final double distance = particle.position().subtract(topParticle.position()).magnitude()
-              - particle.radius() - topParticle.radius();
-      if(distance < 0){
-        return true;
-      }
-    }
-    return false;
+  private boolean isColliding(final Particle particle, final List<Particle> otherParticles) {
+    return otherParticles.stream().anyMatch(op -> op.collides(particle));
   }
 
-  private List<Particle> topParticles(Particle particle, List<Particle> particleList) {
-    return particleList.stream().filter(p -> p.position().getY() + p.radius() >= boxTop - (2 * particle.radius()))
-            .collect(Collectors.toList());
+  private List<Particle> getTopParticles(final List<Particle> particles) {
+    return particles.stream()
+        .filter(p -> p.position().getY() >= boxTop - 4 * maxRadius)
+        .collect(Collectors.toList());
   }
 
   private void addWallParticles(final Particle particle, final Set<Neighbour> neighbours) {
