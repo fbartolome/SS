@@ -100,19 +100,17 @@ public class GranularMediaSimulator implements Simulator {
     for (final Map.Entry<Particle, Set<Neighbour>> entry : neighbours.entrySet()) {
       final Particle movedParticle = moveParticle(entry.getKey(), entry.getValue());
 
-      if (movedParticle.position().getY() - maxRadius <= 0
-          || (movedParticle.position().getY() < boxBottom
-              && (movedParticle.position().getX() - movedParticle.radius() <= 0
-                  || movedParticle.position().getX() + movedParticle.radius() >= boxWidth))) {
+      if (movedParticle.position().getY() < boxBottom) {
         moveToTopParticles.add(movedParticle);
       } else {
         nextParticles.add(movedParticle);
       }
     }
 
+    final List<Particle> topParticles = getTopParticles(nextParticles);
     for (final Particle particle : moveToTopParticles) {
       movementFunctions.get(particle).clearState(particle);
-      nextParticles.add(moveParticleToTop(particle, nextParticles));
+      moveParticleToTop(particle, nextParticles, topParticles);
     }
 
     return nextParticles;
@@ -120,12 +118,11 @@ public class GranularMediaSimulator implements Simulator {
 
   private Particle moveParticle(final Particle particle, final Set<Neighbour> neighbours) {
     addWallParticles(particle, neighbours);
-
     return movementFunctions.get(particle).move(particle, neighbours, dt);
   }
 
-  private Particle moveParticleToTop(final Particle particle, final List<Particle> nextParticles) {
-    final List<Particle> topParticles = getTopParticles(nextParticles);
+  private void moveParticleToTop(final Particle particle, final List<Particle> nextParticles,
+                                     final List<Particle> topParticles) {
     Particle newParticle;
 
     do {
@@ -139,7 +136,8 @@ public class GranularMediaSimulator implements Simulator {
           .build();
     } while (isColliding(newParticle, topParticles));
 
-    return newParticle;
+    topParticles.add(newParticle);
+    nextParticles.add(newParticle);
   }
 
   private boolean isColliding(final Particle particle, final List<Particle> otherParticles) {
