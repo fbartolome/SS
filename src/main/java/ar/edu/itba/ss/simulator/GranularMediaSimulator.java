@@ -8,12 +8,10 @@ import ar.edu.itba.ss.model.Neighbour;
 import ar.edu.itba.ss.model.Particle;
 import ar.edu.itba.ss.model.criteria.Criteria;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+
 import javafx.geometry.Point2D;
 
 public class GranularMediaSimulator implements Simulator {
@@ -91,39 +89,71 @@ public class GranularMediaSimulator implements Simulator {
     final List<Particle> nextParticles = new ArrayList<>(neighbours.size());
 
     for (final Map.Entry<Particle, Set<Neighbour>> entry : neighbours.entrySet()) {
-      nextParticles.add(moveParticle(entry.getKey(), entry.getValue()));
+      moveParticle(entry.getKey(), entry.getValue(), new LinkedList<>(neighbours.keySet()), nextParticles);
     }
 
     return nextParticles;
   }
 
-  private Particle moveParticle(final Particle particle, final Set<Neighbour> neighbours) {
+  private void moveParticle(final Particle particle, final Set<Neighbour> neighbours,
+                                List<Particle> prevParticles, List<Particle> movedParticles) {
     addWallParticles(particle, neighbours);
 
     final MovementFunction function = movementFunctions.get(particle);
     final Particle movedParticle = function.move(particle, neighbours, dt);
 
     if (movedParticle.position().getY() < 0) {
-      return particleToTop(movedParticle);
+      movedParticles.add(particleToTop(movedParticle, prevParticles, movedParticles));
+      return;
     }
 
-    return movedParticle;
+    movedParticles.add(movedParticle);
   }
 
-  private Particle particleToTop(final Particle particle) {
-    final Point2D newPosition = new Point2D(
-        ThreadLocalRandom.current().nextDouble(particle.radius(), boxWidth - particle.radius()),
-        boxTop - particle.radius()
-    );
+  private Particle particleToTop(final Particle particle, List<Particle> prevParticles,
+                                 List<Particle> movedParticles) {
+    boolean found = false;
+    Particle topParticle = null;
+    List<Particle> topParticles = new LinkedList<>();
+    topParticles.addAll(topParticles(particle, prevParticles));
+    topParticles.addAll(topParticles(particle, movedParticles));
 
-    final Particle topParticle = ImmutableParticle.builder()
-        .from(particle)
-        .position(newPosition)
-        .velocity(Point2D.ZERO)
-        .build();
-    // TODO: check overlapping
+    while(!found){
+
+      final Point2D newPosition = new Point2D(
+              ThreadLocalRandom.current().nextDouble(particle.radius(), boxWidth - particle.radius()),
+              boxTop - particle.radius()
+      );
+
+      topParticle = ImmutableParticle.builder()
+              .from(particle)
+              .position(newPosition)
+              .velocity(Point2D.ZERO)
+              .build();
+
+      if(!isOverlapping(topParticle,topParticles)){
+        found = true;
+      }
+    }
+
     movementFunctions.get(particle).clearState(particle);
     return topParticle;
+  }
+
+  private boolean isOverlapping(Particle particle, List<Particle> topParticles) {
+    for(Particle topParticle : topParticles){
+      final double distance = particle.position().subtract(topParticle.position()).magnitude()
+              - particle.radius() - topParticle.radius();
+      if(distance < 0){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private List<Particle> topParticles(Particle particle, List<Particle> particleList) {
+    return particleList.stream().filter(p -> p.position().getY() + p.radius() >= boxTop - (2 * particle.radius()))
+            .collect(Collectors.toList());
   }
 
   private void addWallParticles(final Particle particle, final Set<Neighbour> neighbours) {
