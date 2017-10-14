@@ -50,8 +50,10 @@ public class ContactForceFunction implements BiFunction<Particle, Set<Neighbour>
     }
 
     private double calculateTangentialForce(Particle particle, Neighbour neighbour) {
-        final Point2D tangentialVersor = neighbour.getNeighbourParticle().position().subtract(particle.position())
+        final Point2D normalVersor = neighbour.getNeighbourParticle().position().subtract(particle.position())
                 .normalize();
+        final Point2D tangentialVersor = new Point2D(-normalVersor.getY(),normalVersor.getX());
+        System.out.println(tangentialVersor);
         final double relativeVelocity = particle.velocity().subtract(neighbour.getNeighbourParticle().velocity())
                 .dotProduct(tangentialVersor);
         return -kt * calculatePsi(particle,neighbour) * relativeVelocity;
