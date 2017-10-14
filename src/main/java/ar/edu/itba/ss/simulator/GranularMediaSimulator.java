@@ -42,7 +42,7 @@ public class GranularMediaSimulator implements Simulator {
     this.boxTop = boxHeight * 1.1;
     this.boxBottom = boxTop - boxHeight;
     this.gap = gap;
-    this.cim = new CellIndexMethod(boxTop, false);
+    this.cim = new CellIndexMethod(boxTop > boxWidth ? boxTop : boxWidth, false);
     this.movementFunctions = movementFunctions;
   }
 
@@ -113,7 +113,7 @@ public class GranularMediaSimulator implements Simulator {
   private Particle particleToTop(final Particle particle) {
     final Point2D newPosition = new Point2D(
         ThreadLocalRandom.current().nextDouble(particle.radius(), boxWidth - particle.radius()),
-        boxTop
+        boxTop - particle.radius()
     );
 
     final Particle topParticle = ImmutableParticle.builder()
@@ -123,7 +123,6 @@ public class GranularMediaSimulator implements Simulator {
         .build();
     // TODO: check overlapping
     movementFunctions.get(particle).clearState(particle);
-//    movementFunctions.put(topParticle, movementFunctions.get(topParticle));
     return topParticle;
   }
 
