@@ -6,7 +6,6 @@ import ar.edu.itba.ss.method.neigbour.CellIndexMethod;
 import ar.edu.itba.ss.model.ImmutableParticle;
 import ar.edu.itba.ss.model.Neighbour;
 import ar.edu.itba.ss.model.Particle;
-import ar.edu.itba.ss.model.Points;
 import ar.edu.itba.ss.model.criteria.Criteria;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -120,9 +119,9 @@ public class GranularMediaSimulator implements Simulator {
   }
 
   private boolean shouldMoveParticle(final Particle particle) {
-    return particle.position().getY() - particle.radius() <= 0
-        || particle.position().getX() - particle.radius() <= 0
-        || particle.position().getX() + particle.radius() >= boxWidth;
+    return particle.position().getY() <= 0
+        || particle.position().getX() <= 0
+        || particle.position().getX() >= boxWidth;
   }
 
   private List<Particle> getTopParticles(final List<Particle> particles) {
@@ -145,8 +144,6 @@ public class GranularMediaSimulator implements Simulator {
           ThreadLocalRandom.current().nextDouble(particle.radius(), boxWidth - particle.radius()),
           ThreadLocalRandom.current()
               .nextDouble(boxTop - 2 * maxRadius, boxTop - particle.radius()));
-
-      System.out.println("NEW POSITION: x: " + newPosition.getX() + " y: " + newPosition.getY());
 
       newParticle = ImmutableParticle.builder().from(particle)
           .position(newPosition)
@@ -193,7 +190,7 @@ public class GranularMediaSimulator implements Simulator {
     double gapEnd = boxWidth - gapStart;
     distanceToWall = particle.position().getY() - particle.radius() - boxBottom;
     if (distanceToWall < 0
-        && (particle.position().getX() < gapStart || particle.position().getX() > gapEnd)) {
+        && (particle.position().getX() <= gapStart || particle.position().getX() >= gapEnd)) {
       neighbours.add(new Neighbour(ImmutableParticle.builder()
           .id(wallId--)
           .position(new Point2D(particle.position().getX(), boxBottom))
@@ -203,28 +200,34 @@ public class GranularMediaSimulator implements Simulator {
           .build(), distanceToWall));
     }
 
-    // gap start
-    distanceToWall = gapStart - (particle.position().getX() - particle.radius());
-    if (distanceToWall < 0 && particle.position().getY() == boxBottom) {
-      neighbours.add(new Neighbour(ImmutableParticle.builder()
-          .id(wallId--)
-          .position(new Point2D(gapStart, 0))
-          .mass(Double.POSITIVE_INFINITY)
-          .radius(0)
-          .velocity(Point2D.ZERO)
-          .build(), distanceToWall));
-    }
+    // gap
+    if (particle.position().getX() > gapStart && particle.position().getX() < gapEnd) {
+      final Point2D gapStartPosition = new Point2D(gapStart, boxBottom);
+      final Point2D gapEndPosition = new Point2D(gapEnd, boxBottom);
+      final double gapStartDistance =
+          particle.position().distance(gapStartPosition) - particle.radius();
+      final double gapEndDistance =
+          particle.position().distance(gapEndPosition) - particle.radius();
 
-    // gap end
-    distanceToWall = gapEnd - (particle.position().getX() + particle.radius());
-    if (distanceToWall < 0 && particle.position().getY() == boxBottom) {
-      neighbours.add(new Neighbour(ImmutableParticle.builder()
-          .id(wallId--)
-          .position(new Point2D(gapEnd, 0))
-          .mass(Double.POSITIVE_INFINITY)
-          .radius(0)
-          .velocity(Point2D.ZERO)
-          .build(), distanceToWall));
+      if (gapStartDistance < 0) {
+        neighbours.add(new Neighbour(ImmutableParticle.builder()
+            .id(wallId--)
+            .position(gapStartPosition)
+            .mass(Double.POSITIVE_INFINITY)
+            .radius(0)
+            .velocity(Point2D.ZERO)
+            .build(), distanceToWall));
+      }
+
+      if (gapEndDistance < 0) {
+        neighbours.add(new Neighbour(ImmutableParticle.builder()
+            .id(wallId--)
+            .position(gapEndPosition)
+            .mass(Double.POSITIVE_INFINITY)
+            .radius(0)
+            .velocity(Point2D.ZERO)
+            .build(), distanceToWall));
+      }
     }
   }
 }

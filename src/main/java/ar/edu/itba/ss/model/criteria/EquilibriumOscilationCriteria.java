@@ -2,11 +2,10 @@ package ar.edu.itba.ss.model.criteria;
 
 import ar.edu.itba.ss.model.Particle;
 import ar.edu.itba.ss.model.Points;
-import javafx.geometry.Point2D;
-
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
+import javafx.geometry.Point2D;
 
 public class EquilibriumOscilationCriteria implements Criteria{
 
@@ -26,7 +25,7 @@ public class EquilibriumOscilationCriteria implements Criteria{
     }
 
     @Override
-    public boolean test(double time, Set<Particle> particles) {
+    public boolean test(double time, Collection<Particle> particles) {
         final List<Point2D> positions = particles.stream().filter(p -> p.id() > 0)
                 .map(Particle::position).collect(Collectors.toList());
         final double fraction =

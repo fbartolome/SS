@@ -1,7 +1,7 @@
 package ar.edu.itba.ss.model.criteria;
 
 import ar.edu.itba.ss.model.Particle;
-import java.util.Set;
+import java.util.Collection;
 
 public class TimeCriteria implements Criteria {
 
@@ -12,7 +12,7 @@ public class TimeCriteria implements Criteria {
   }
 
   @Override
-  public boolean test(double time, Set<Particle> particles) {
+  public boolean test(double time, Collection<Particle> particles) {
     return time > limit;
   }
 }

@@ -6,7 +6,7 @@ import ar.edu.itba.ss.model.Particle;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 public class AppendFileParticlesWriter implements ParticlesWriter {
 
@@ -23,7 +23,7 @@ public class AppendFileParticlesWriter implements ParticlesWriter {
   }
 
   @Override
-  public void write(final double time, final List<Particle> particles) throws IOException {
+  public void write(final double time, final Collection<Particle> particles) throws IOException {
     ParticlesXYZFiles.append(filePath, time, particles);
   }
 }

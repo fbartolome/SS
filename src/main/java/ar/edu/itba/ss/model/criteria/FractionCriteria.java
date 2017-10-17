@@ -2,9 +2,9 @@ package ar.edu.itba.ss.model.criteria;
 
 import ar.edu.itba.ss.model.Particle;
 import ar.edu.itba.ss.model.Points;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.DoublePredicate;
 import java.util.stream.Collectors;
 import javafx.geometry.Point2D;
@@ -22,7 +22,7 @@ public class FractionCriteria implements Criteria {
   }
 
   @Override
-  public boolean test(final double time, final Set<Particle> originalParticles) {
+  public boolean test(final double time, final Collection<Particle> originalParticles) {
     final List<Point2D> positions = originalParticles.stream().filter(p -> p.id() > 0)
         .map(Particle::position).collect(Collectors.toList());
     final double fraction =

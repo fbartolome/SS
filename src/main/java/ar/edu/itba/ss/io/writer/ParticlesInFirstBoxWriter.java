@@ -2,15 +2,14 @@ package ar.edu.itba.ss.io.writer;
 
 import ar.edu.itba.ss.model.Particle;
 import ar.edu.itba.ss.model.Scatter2DChart;
-import ar.edu.itba.ss.model.criteria.FractionCriteria;
-import javafx.application.Platform;
-import javafx.geometry.Point2D;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.application.Platform;
+import javafx.geometry.Point2D;
 
 public class ParticlesInFirstBoxWriter implements ParticlesWriter{
 
@@ -28,7 +27,7 @@ public class ParticlesInFirstBoxWriter implements ParticlesWriter{
     }
 
     @Override
-    public void write(double time, List<Particle> particles) throws IOException {
+    public void write(double time, Collection<Particle> particles) throws IOException {
         particles = particles.stream().filter(p->p.id()>0).collect(Collectors.toList());
         List<Particle> particlesInFirstBox = particles.stream()
                 .filter(p -> {

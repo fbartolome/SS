@@ -18,7 +18,7 @@ import javafx.geometry.Point2D;
 
 public class GranularMediaMain {
 
-  private static final double BOX_HEIGHT = 4;
+  private static final double BOX_HEIGHT = 2;
   private static final double BOX_WIDTH = 1;
   private static final double BOX_TOP = BOX_HEIGHT * 1.1;
   private static final double BOX_BOTTOM = BOX_TOP - BOX_HEIGHT;
@@ -26,10 +26,10 @@ public class GranularMediaMain {
   private static final double MAX_RADIUS = 0.015;
   private static final double MIN_RADIUS = 0.01;
   private static final double MASS = 0.01;
-  private static final int N = 1;
+  private static final int N = 500;
   private static final double KN = 100000;
   private static final double KT = 2 * KN;
-  private static final double DT = 0.00001;
+  private static final double DT = 0.000001;
   //    private static final double DT = 0.1 * Math.sqrt(MASS / KN);
   private static final int WRITER_ITERATIONS = (int) (1 / DT) / 100;
 
@@ -50,13 +50,7 @@ public class GranularMediaMain {
         .build();
 //    final List<Particle> initialParticles =
 //        RandomParticleGenerator.generateParticles(minParticle, maxParticle);
-    final List<Particle> initialParticles = Collections.singletonList(ImmutableParticle.builder()
-        .id(1)
-        .radius(MAX_RADIUS)
-        .mass(MASS)
-        .velocity(new Point2D(2, -10))
-        .position(new Point2D(BOX_WIDTH / 2, BOX_HEIGHT / 2 + BOX_BOTTOM))
-        .build());
+    final List<Particle> initialParticles = testParticle();
 
     final Map<Particle, MovementFunction> functions = new HashMap<>();
     final ContactForceFunction forceFunction = new ContactForceFunction(KN, KT, true);
@@ -81,5 +75,16 @@ public class GranularMediaMain {
         new Point2D(0, BOX_BOTTOM), new Point2D(BOX_WIDTH, BOX_TOP), GAP);
 
     simulator.simulate(timeCriteria, writer);
+  }
+
+  // TODO: Remove
+  private static List<Particle> testParticle() {
+    return Collections.singletonList(ImmutableParticle.builder()
+        .id(1)
+        .radius(MAX_RADIUS)
+        .mass(MASS)
+        .velocity(new Point2D(0, 0))
+        .position(new Point2D(BOX_WIDTH, BOX_HEIGHT))
+        .build());
   }
 }

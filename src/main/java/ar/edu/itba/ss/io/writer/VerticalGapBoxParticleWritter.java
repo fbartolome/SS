@@ -3,18 +3,19 @@ package ar.edu.itba.ss.io.writer;
 import ar.edu.itba.ss.model.ImmutableParticle;
 import ar.edu.itba.ss.model.Particle;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import javafx.geometry.Point2D;
 
-public class BoxParticleWritter extends AppendFileParticlesWriter {
+public class VerticalGapBoxParticleWritter extends AppendFileParticlesWriter {
 
   private static final double OVITO_PARTICLES_RADIUS = 0;
   private static final double OVITO_PARTICLES_MASS = Double.POSITIVE_INFINITY;
 
   private final List<Particle> boxParticles;
 
-  public BoxParticleWritter(final String fileName, final double boxWidth, final double boxHeight,
+  public VerticalGapBoxParticleWritter(final String fileName, final double boxWidth, final double boxHeight,
       final double boxMiddleGap) {
     super(fileName);
 
@@ -22,7 +23,7 @@ public class BoxParticleWritter extends AppendFileParticlesWriter {
   }
 
   @Override
-  public void write(final double time, final List<Particle> particles) throws IOException {
+  public void write(final double time, final Collection<Particle> particles) throws IOException {
     final List<Particle> particlesToWrite = new LinkedList<>(particles);
     particlesToWrite.addAll(boxParticles);
     super.write(time, particlesToWrite);

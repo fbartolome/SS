@@ -29,6 +29,6 @@ public interface Particle {
   }
 
   default boolean collides(final Particle other) {
-    return this.position().distance(other.position()) < this.radius() + other.radius();
+    return this.position().distance(other.position()) - this.radius() - other.radius() < 0;
   }
 }
