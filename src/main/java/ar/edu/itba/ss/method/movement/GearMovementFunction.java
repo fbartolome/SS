@@ -6,6 +6,7 @@ import static java.util.Objects.requireNonNull;
 import ar.edu.itba.ss.model.ImmutableParticle;
 import ar.edu.itba.ss.model.Neighbour;
 import ar.edu.itba.ss.model.Particle;
+import ar.edu.itba.ss.model.Physics;
 import java.util.Set;
 import java.util.function.BiFunction;
 import javafx.geometry.Point2D;
@@ -92,5 +93,15 @@ public class GearMovementFunction implements MovementFunction {
         .position(r[0])
         .velocity(r[1])
         .build();
+  }
+
+  @Override
+  public void clearState(final Particle particle) {
+    r[0] = particle.position();
+    r[1] = particle.velocity();
+    r[2] = new Point2D(0, -Physics.GRAVITY);
+    for (int i = 3; i < r.length; i++) {
+      r[i] = Point2D.ZERO;
+    }
   }
 }

@@ -6,6 +6,7 @@ import ar.edu.itba.ss.method.neigbour.CellIndexMethod;
 import ar.edu.itba.ss.model.ImmutableParticle;
 import ar.edu.itba.ss.model.Neighbour;
 import ar.edu.itba.ss.model.Particle;
+import ar.edu.itba.ss.model.Points;
 import ar.edu.itba.ss.model.criteria.Criteria;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,7 +48,9 @@ public class GranularMediaSimulator implements Simulator {
     this.gap = gap;
     this.cim = new CellIndexMethod(boxTop > boxWidth ? boxTop : boxWidth, false);
     this.movementFunctions = movementFunctions;
-    this.maxRadius = initialParticles.stream().mapToDouble(Particle::radius).max().getAsDouble();
+    this.maxRadius = initialParticles.stream()
+        .mapToDouble(Particle::radius)
+        .max().orElseThrow(IllegalArgumentException::new);
   }
 
   @Override
@@ -107,8 +110,10 @@ public class GranularMediaSimulator implements Simulator {
 
     final List<Particle> topParticles = getTopParticles(nextParticles);
     for (final Particle particle : moveToTopParticles) {
-      movementFunctions.get(particle).clearState(particle);
-      addParticleMovedToTop(particle, nextParticles, topParticles);
+      final Particle particleMovedToTop = moveParticleToTop(particle, topParticles);
+      nextParticles.add(particleMovedToTop);
+      topParticles.add(particleMovedToTop);
+      movementFunctions.get(particle).clearState(particleMovedToTop);
     }
 
     return nextParticles;
@@ -122,7 +127,7 @@ public class GranularMediaSimulator implements Simulator {
 
   private List<Particle> getTopParticles(final List<Particle> particles) {
     return particles.stream()
-        .filter(p -> p.position().getY() >= boxTop - 4 * maxRadius)
+        .filter(p -> p.position().getY() >= boxTop - 2 * maxRadius)
         .collect(Collectors.toList());
   }
 
@@ -132,14 +137,16 @@ public class GranularMediaSimulator implements Simulator {
     return movementFunctions.get(particle).move(particle, neighbours, dt);
   }
 
-  private void addParticleMovedToTop(final Particle particle, final List<Particle> nextParticles,
-      final List<Particle> topParticles) {
+  private Particle moveParticleToTop(final Particle particle, final List<Particle> topParticles) {
     Particle newParticle;
 
     do {
       final Point2D newPosition = new Point2D(
           ThreadLocalRandom.current().nextDouble(particle.radius(), boxWidth - particle.radius()),
-          boxTop - particle.radius());
+          ThreadLocalRandom.current()
+              .nextDouble(boxTop - 2 * maxRadius, boxTop - particle.radius()));
+
+      System.out.println("NEW POSITION: x: " + newPosition.getX() + " y: " + newPosition.getY());
 
       newParticle = ImmutableParticle.builder().from(particle)
           .position(newPosition)
@@ -147,12 +154,11 @@ public class GranularMediaSimulator implements Simulator {
           .build();
     } while (isColliding(newParticle, topParticles));
 
-    topParticles.add(newParticle);
-    nextParticles.add(newParticle);
+    return newParticle;
   }
 
   private boolean isColliding(final Particle particle, final List<Particle> otherParticles) {
-    return otherParticles.stream().anyMatch(op -> op.collides(particle));
+    return otherParticles.stream().anyMatch(particle::collides);
   }
 
   private void addWallParticles(final Particle particle, final Set<Neighbour> neighbours) {
