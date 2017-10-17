@@ -8,7 +8,9 @@ public interface MovementFunction {
 
   Particle move(final Particle currentParticle, final Set<Neighbour> neighbours, final double dt);
 
-   default void clearState(Particle particle){
-     throw new UnsupportedOperationException();
-   };
+  default void clearState(Particle particle) {
+    throw new UnsupportedOperationException();
+  }
+
+  ;
 }

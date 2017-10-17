@@ -14,9 +14,9 @@ import javafx.geometry.Point2D;
 
 public class EnergyWriter implements ParticlesWriter {
 
-  private List<Point2D> points;
   private final double epsilon;
   private final double rm;
+  private List<Point2D> points;
 
   public EnergyWriter(double epsilon, double rm) {
     this.epsilon = epsilon;

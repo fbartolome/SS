@@ -17,8 +17,7 @@ import javafx.geometry.Point2D;
 public class ParticlesXYZFiles {
 
   public static void append(final Path path, final double time,
-      final Collection<Particle> particles)
-      throws IOException {
+      final Collection<Particle> particles) throws IOException {
 
     try (final BufferedWriter writer = Files.newBufferedWriter(path, StandardOpenOption.APPEND)) {
       writer.write(particles.size() + "\n");

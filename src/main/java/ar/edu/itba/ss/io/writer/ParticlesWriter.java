@@ -12,12 +12,14 @@ public interface ParticlesWriter {
 
   void write(final double time, final Collection<Particle> particles) throws IOException;
 
-  default void write(final double time, final Collection<Particle> particles, final Collision collision)
+  default void write(final double time, final Collection<Particle> particles,
+      final Collision collision)
       throws IOException {
     write(time, particles);
   }
 
-  default void write(final double time, final Map<Particle, Set<Neighbour>> neighbours) throws IOException {
+  default void write(final double time, final Map<Particle, Set<Neighbour>> neighbours)
+      throws IOException {
     write(time, neighbours.keySet());
   }
 }

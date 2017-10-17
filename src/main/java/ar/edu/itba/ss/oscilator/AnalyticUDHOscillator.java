@@ -58,16 +58,16 @@ public class AnalyticUDHOscillator {
       this.b = b;
     }
 
-    @Override
-    public Point2D apply(final Particle particle, final Set<Neighbour> neighbours) {
-      return apply(particle, k, b);
-    }
-
     public static Point2D apply(final Particle particle, final double k, final double b) {
       return particle.position()
           .multiply(-k)
           .subtract(particle.velocity()
               .multiply(b));
+    }
+
+    @Override
+    public Point2D apply(final Particle particle, final Set<Neighbour> neighbours) {
+      return apply(particle, k, b);
     }
   }
 }

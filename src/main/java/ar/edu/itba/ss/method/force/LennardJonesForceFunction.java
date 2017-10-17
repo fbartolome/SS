@@ -18,6 +18,10 @@ public class LennardJonesForceFunction implements BiFunction<Particle, Set<Neigh
     this.rm = rm;
   }
 
+  private static double forceMagnitude(final double epsilon, final double rm, final double r) {
+    return 12 * epsilon * (pow(rm / r, 13) - pow(rm / r, 7)) / rm;
+  }
+
   @Override
   public Point2D apply(final Particle particle, final Set<Neighbour> neighbours) {
 
@@ -33,9 +37,5 @@ public class LennardJonesForceFunction implements BiFunction<Particle, Set<Neigh
     }
 
     return new Point2D(totalForceX, totalForceY);
-  }
-
-  private static double forceMagnitude(final double epsilon, final double rm, final double r) {
-    return 12 * epsilon * (pow(rm / r, 13) - pow(rm / r, 7)) / rm;
   }
 }

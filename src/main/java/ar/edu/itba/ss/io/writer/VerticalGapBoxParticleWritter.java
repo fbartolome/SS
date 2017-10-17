@@ -15,7 +15,8 @@ public class VerticalGapBoxParticleWritter extends AppendFileParticlesWriter {
 
   private final List<Particle> boxParticles;
 
-  public VerticalGapBoxParticleWritter(final String fileName, final double boxWidth, final double boxHeight,
+  public VerticalGapBoxParticleWritter(final String fileName, final double boxWidth,
+      final double boxHeight,
       final double boxMiddleGap) {
     super(fileName);
 

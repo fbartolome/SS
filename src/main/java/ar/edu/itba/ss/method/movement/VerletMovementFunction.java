@@ -45,7 +45,7 @@ public class VerletMovementFunction implements MovementFunction {
   }
 
   @Override
-  public void clearState(Particle particle){
+  public void clearState(Particle particle) {
     previousPosition = particle.position();
   }
 }
