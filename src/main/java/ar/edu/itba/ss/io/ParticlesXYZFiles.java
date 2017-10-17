@@ -10,6 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import javafx.geometry.Point2D;
 
 public class ParticlesXYZFiles {
@@ -24,6 +26,26 @@ public class ParticlesXYZFiles {
         writer.write(particle.id() + "  " + particle.radius() + "  " + particle.position().getX()
             + "  " + particle.position().getY() + "  " + particle.velocity().getX() + "  "
             + particle.velocity().getY() + "\n");
+      }
+    }
+  }
+
+  public static void appendWithOtherAttributes(final Path path, final double time,
+                                               final Map<Particle,List<Double>> map) throws IOException {
+
+    try (final BufferedWriter writer = Files.newBufferedWriter(path, StandardOpenOption.APPEND)) {
+      writer.write(map.size() + "\n");
+      writer.write(time + "\n");
+      for (final Map.Entry entry : map.entrySet()) {
+        final Particle particle = (Particle) entry.getKey();
+        final List<Double> attributes = (List<Double>) entry.getValue();
+        writer.write(particle.id() + "  " + particle.radius() + "  " + particle.position().getX()
+                + "  " + particle.position().getY() + "  " + particle.velocity().getX() + "  "
+                + particle.velocity().getY());
+        for (Double attribute : attributes){
+          writer.write("  " + attribute);
+        }
+        writer.write("\n");
       }
     }
   }
