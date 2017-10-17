@@ -9,7 +9,7 @@ import javafx.geometry.Point2D;
 public class ContactForceFunction implements BiFunction<Particle, Set<Neighbour>, Point2D> {
 
   //TODO: gravity should be here?
-  private static final double GRAVITY = 9.8;
+  private static final double GRAVITY = 9.80665;
 
   private final double kn;
   private final double kt;
@@ -65,6 +65,7 @@ public class ContactForceFunction implements BiFunction<Particle, Set<Neighbour>
   }
 
   private double calculatePsi(Particle particle, Neighbour neighbour) {
-    return Math.abs(neighbour.getDistance());
+    return particle.radius() + neighbour.getNeighbourParticle().radius()
+        - particle.position().subtract(neighbour.getNeighbourParticle().position()).magnitude();
   }
 }
