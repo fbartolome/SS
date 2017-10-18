@@ -10,21 +10,26 @@ import java.util.List;
 
 public class KineticEnergyWriter implements ParticlesWriter {
 
+  private final boolean isSemiLogarithmic;
   private List<Point2D> points;
 
-  public KineticEnergyWriter() {
+  public KineticEnergyWriter(boolean isSemiLogarithmic) {
+    this.isSemiLogarithmic = isSemiLogarithmic;
     this.points = new LinkedList<>();
   }
 
   @Override
   public void write(double time, Collection<Particle> particles) throws IOException {
-    final double kinetic = particles.stream()
+    double kinetic = particles.stream()
             .mapToDouble(this::kineticEnergy)
             .sum();
+    if(isSemiLogarithmic){
+      kinetic = Math.log10(kinetic);
+    }
     points.add(new Point2D(time, kinetic));
   }
 
-  public double kineticEnergy(final Particle particle) {
+  private double kineticEnergy(final Particle particle) {
     return 0.5 * particle.mass()
         * particle.velocity().magnitude() * particle.velocity().magnitude();
   }

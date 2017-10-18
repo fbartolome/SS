@@ -32,6 +32,8 @@ public class GranularMediaSimulator implements Simulator {
   private final CellIndexMethod cim;
   private final double maxRadius;
   private Map<Particle, MovementFunction> movementFunctions;
+  private final List<Double> flowTimes;
+  private int count = 0;
 
   public GranularMediaSimulator(List<Particle> initialParticles, double dt, int writerIteration,
       double boxWidth, double boxHeight, double gap,
@@ -50,6 +52,7 @@ public class GranularMediaSimulator implements Simulator {
     this.maxRadius = initialParticles.stream()
         .mapToDouble(Particle::radius)
         .max().orElseThrow(IllegalArgumentException::new);
+    flowTimes = new LinkedList<>();
   }
 
   @Override
@@ -60,7 +63,7 @@ public class GranularMediaSimulator implements Simulator {
 
     while (!endCriteria.test(time, currentParticles)) {
       final Map<Particle, Set<Neighbour>> neighbours = cim.apply(currentParticles, maxRadius, 0);
-      currentParticles = nextParticles(neighbours);
+      currentParticles = nextParticles(neighbours, time);
 
       if (iteration == writerIteration) {
         iteration = 0;
@@ -73,12 +76,16 @@ public class GranularMediaSimulator implements Simulator {
 
       time += dt;
       iteration++;
+      if(count >= 1){
+        System.out.println(count);
+      }
+      count = 0;
     }
 
     return new HashSet<>(currentParticles);
   }
 
-  private List<Particle> nextParticles(final Map<Particle, Set<Neighbour>> neighbours) {
+  private List<Particle> nextParticles(final Map<Particle, Set<Neighbour>> neighbours, double time) {
     final List<Particle> nextParticles = new ArrayList<>(neighbours.size());
     final List<Particle> moveToTopParticles = new LinkedList<>();
 
@@ -94,6 +101,8 @@ public class GranularMediaSimulator implements Simulator {
 
     final List<Particle> topParticles = getTopParticles(nextParticles);
     for (final Particle particle : moveToTopParticles) {
+      flowTimes.add(time);
+      count++;
       final Particle particleMovedToTop = moveParticleToTop(particle, topParticles);
       nextParticles.add(particleMovedToTop);
       topParticles.add(particleMovedToTop);
@@ -215,5 +224,9 @@ public class GranularMediaSimulator implements Simulator {
             .build(), distanceToWall));
       }
     }
+  }
+
+  public List<Double> getFlowTimes() {
+    return flowTimes;
   }
 }

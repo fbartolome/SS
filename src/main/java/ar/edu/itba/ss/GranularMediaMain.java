@@ -2,6 +2,8 @@ package ar.edu.itba.ss;
 
 import ar.edu.itba.ss.generator.RandomParticleGenerator;
 import ar.edu.itba.ss.io.writer.BottomGapBoxParticleWriter;
+import ar.edu.itba.ss.io.writer.KineticEnergyWriter;
+import ar.edu.itba.ss.io.writer.MultiWriter;
 import ar.edu.itba.ss.io.writer.ParticlesWriter;
 import ar.edu.itba.ss.method.force.ContactForceFunction;
 import ar.edu.itba.ss.method.movement.GearMovementFunction;
@@ -9,13 +11,15 @@ import ar.edu.itba.ss.method.movement.MovementFunction;
 import ar.edu.itba.ss.model.ImmutableParticle;
 import ar.edu.itba.ss.model.Particle;
 import ar.edu.itba.ss.model.Physics;
+import ar.edu.itba.ss.model.Scatter2DChart;
+import ar.edu.itba.ss.model.criteria.KineticEnergyEquilibriumCriteria;
 import ar.edu.itba.ss.model.criteria.NullVelocityCriteria;
 import ar.edu.itba.ss.model.criteria.TimeCriteria;
 import ar.edu.itba.ss.simulator.GranularMediaSimulator;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
+
+import javafx.application.Platform;
 import javafx.geometry.Point2D;
 
 public class GranularMediaMain {
@@ -36,6 +40,7 @@ public class GranularMediaMain {
   private static final int WRITER_ITERATIONS = (int) (1 / DT) / 100;
 
   public static void main(final String[] args) {
+    Scatter2DChart.initialize("", "", 0, 0, 0, "", 0, 0, 0);
     final Particle minParticle = ImmutableParticle.builder()
         .id(1)
         .radius(MIN_RADIUS)
@@ -72,13 +77,26 @@ public class GranularMediaMain {
     final GranularMediaSimulator simulator = new GranularMediaSimulator(initialParticles,
         DT, WRITER_ITERATIONS, BOX_WIDTH, BOX_HEIGHT, GAP, functions);
 
-    final TimeCriteria timeCriteria = new TimeCriteria(10);
+    final TimeCriteria timeCriteria = new TimeCriteria(1 );
     final NullVelocityCriteria nullVelocityCriteria =
             new NullVelocityCriteria(0.001, 0.01);
+    final KineticEnergyEquilibriumCriteria kineticCriteria = new KineticEnergyEquilibriumCriteria(0.01,
+            2 * WRITER_ITERATIONS);
+
     final ParticlesWriter writer = new BottomGapBoxParticleWriter("simulation_gm",
         new Point2D(0, BOX_BOTTOM), new Point2D(BOX_WIDTH, BOX_TOP), GAP, forceFunction);
+    final KineticEnergyWriter kineticEnergyWriter = new KineticEnergyWriter(true);
+    final List<ParticlesWriter> writers = new LinkedList<>();
+    writers.add(writer);
+    writers.add(kineticEnergyWriter);
+    final MultiWriter multiWriter = new MultiWriter(writers);
 
-    simulator.simulate(nullVelocityCriteria, writer);
+    simulator.simulate(kineticCriteria, multiWriter);
+    List<Point2D> points = kineticEnergyWriter.getPoints();
+    points.stream().forEach(p -> System.out.println(p.getY()));
+    System.out.println("LISTO");
+    Platform.runLater(() -> Scatter2DChart.addSeries("", points));
+
   }
 
   // TODO: Remove

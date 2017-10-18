@@ -54,8 +54,8 @@ public class Scatter2DChart extends Application {
   @Override
   public void start(final Stage primaryStage) throws Exception {
     Scatter2DChart.chart = new ScatterChart<>(
-        new NumberAxis(xLabel, xMin, xMax, xStep),
-        new NumberAxis(yLabel, yMin, yMax, yStep));
+        new NumberAxis(),
+        new NumberAxis());
     Scatter2DChart.chart.setTitle(Objects.requireNonNull(name));
     Scatter2DChart.chart.setPrefSize(500, 400); // TODO
     primaryStage.setTitle(chart.getTitle());
