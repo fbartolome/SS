@@ -18,6 +18,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import javafx.geometry.Point2D;
 
+import static java.lang.Math.abs;
+
 public class GranularMediaSimulator implements Simulator {
 
   private final List<Particle> initialParticles;
@@ -122,14 +124,16 @@ public class GranularMediaSimulator implements Simulator {
   }
 
   private boolean shouldMoveParticle(final Particle particle) {
-    return particle.position().getY() <= 0
-        || particle.position().getX() <= 0
-        || particle.position().getX() >= boxWidth;
+    return particle.position().getY() - particle.radius() <= 0
+        || (particle.position().getY() <= boxBottom
+            && particle.position().getX() - particle.radius() <= 0)
+        || (particle.position().getY() <= boxBottom
+            && particle.position().getX() + particle.radius() >= boxWidth);
   }
 
   private List<Particle> getTopParticles(final List<Particle> particles) {
     return particles.stream()
-        .filter(p -> p.position().getY() >= boxTop - 2 * maxRadius)
+        .filter(p -> p.position().getY() >= boxTop - 4 * maxRadius)
         .collect(Collectors.toList());
   }
 
@@ -145,8 +149,7 @@ public class GranularMediaSimulator implements Simulator {
     do {
       final Point2D newPosition = new Point2D(
           ThreadLocalRandom.current().nextDouble(particle.radius(), boxWidth - particle.radius()),
-          ThreadLocalRandom.current()
-              .nextDouble(boxTop - 2 * maxRadius, boxTop - particle.radius()));
+          boxTop - particle.radius());
 
       newParticle = ImmutableParticle.builder().from(particle)
           .position(newPosition)
@@ -191,7 +194,8 @@ public class GranularMediaSimulator implements Simulator {
     // down wall
     double gapStart = boxWidth / 2 - gap / 2;
     double gapEnd = boxWidth - gapStart;
-    distanceToWall = particle.position().getY() - particle.radius() - boxBottom;
+    distanceToWall = Math.abs(particle.position().getY() - boxBottom) - particle.radius();
+//    distanceToWall = particle.position().getY() - particle.radius() - boxBottom;
     if (distanceToWall < 0
         && (particle.position().getX() <= gapStart || particle.position().getX() >= gapEnd)) {
       neighbours.add(new Neighbour(ImmutableParticle.builder()
