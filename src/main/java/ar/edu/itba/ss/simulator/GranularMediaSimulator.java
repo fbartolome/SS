@@ -68,6 +68,9 @@ public class GranularMediaSimulator implements Simulator {
             "AVG VELOCITY: " + currentParticles.stream().mapToDouble(p -> p.velocity().magnitude())
                 .average().getAsDouble());
         System.out.println(
+                "MAX VELOCITY: " + currentParticles.stream().mapToDouble(p -> p.velocity().magnitude())
+                        .max().getAsDouble());
+        System.out.println(
             "MIN POSITION: " + currentParticles.stream().mapToDouble(p -> p.position().getX()).min()
                 .getAsDouble() + ", " + currentParticles.stream()
                 .mapToDouble(p -> p.position().getY())
