@@ -44,6 +44,7 @@ public class FlowCriteria implements Criteria {
       lastFlows.addLast(currentFlow);
 
       if (lastFlows.size() == times) {
+        lastFlows.removeLast();
         final double maxFlow = lastFlows.stream().mapToDouble(p -> p).max().getAsDouble();
         final double minFlow = lastFlows.stream().mapToDouble(p -> p).min().getAsDouble();
         final double avgFlow = lastFlows.stream().mapToDouble(p -> p).average().getAsDouble();
@@ -54,6 +55,7 @@ public class FlowCriteria implements Criteria {
           return true;
         }
 
+        lastFlows.addLast(currentFlow);
         lastFlows.removeFirst();
       }
     }
