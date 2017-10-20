@@ -42,13 +42,17 @@ public class Scatter2DChart extends Application {
   }
 
   public static void addSeries(final String name, final List<Point2D> points) {
-    final Series<Number, Number> series = new Series();
+    final Series<Number, Number> series = new Series<>();
 
     series.setName(Objects.requireNonNull(name));
     for (final Point2D point : points) {
       series.getData().add(new Data<>(point.getX(), point.getY()));
     }
     Scatter2DChart.chart.getData().add(series);
+  }
+
+  public static void removeFirstSeries() {
+    Scatter2DChart.chart.getData().remove(0);
   }
 
   @Override
