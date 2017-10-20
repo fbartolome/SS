@@ -1,12 +1,11 @@
 package ar.edu.itba.ss.io.writer;
 
 import ar.edu.itba.ss.model.Particle;
-import javafx.geometry.Point2D;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import javafx.geometry.Point2D;
 
 public class KineticEnergyWriter implements ParticlesWriter {
 
@@ -21,17 +20,12 @@ public class KineticEnergyWriter implements ParticlesWriter {
   @Override
   public void write(double time, Collection<Particle> particles) throws IOException {
     double kinetic = particles.stream()
-            .mapToDouble(this::kineticEnergy)
-            .sum();
-    if(isSemiLogarithmic){
+        .mapToDouble(this::kineticEnergy)
+        .sum();
+    if (isSemiLogarithmic) {
       kinetic = Math.log10(kinetic);
     }
     points.add(new Point2D(time, kinetic));
-  }
-
-  private double kineticEnergy(final Particle particle) {
-    return 0.5 * particle.mass()
-        * particle.velocity().magnitude() * particle.velocity().magnitude();
   }
 
   public List<Point2D> getPoints() {
@@ -39,5 +33,10 @@ public class KineticEnergyWriter implements ParticlesWriter {
     points = new LinkedList<>();
 
     return oldPoints;
+  }
+
+  private double kineticEnergy(final Particle particle) {
+    return 0.5 * particle.mass()
+        * particle.velocity().magnitude() * particle.velocity().magnitude();
   }
 }

@@ -9,7 +9,6 @@ import ar.edu.itba.ss.model.Particle;
 import ar.edu.itba.ss.model.criteria.Criteria;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import javafx.geometry.Point2D;
 
-public class GranularMediaSimulator implements Simulator {
+@SuppressWarnings("Duplicates")
+public class GranularMediaSimulator {
 
   private final List<Particle> initialParticles;
   private final int amountOfParticles;
@@ -33,7 +33,7 @@ public class GranularMediaSimulator implements Simulator {
   private final double maxRadius;
   private Map<Particle, MovementFunction> movementFunctions;
   private final List<Double> flowTimes;
-  private int count = 0;
+  private int currentTimeFlowedParticles = 0;
 
   public GranularMediaSimulator(List<Particle> initialParticles, double dt, int writerIteration,
       double boxWidth, double boxHeight, double gap,
@@ -55,17 +55,17 @@ public class GranularMediaSimulator implements Simulator {
     flowTimes = new LinkedList<>();
   }
 
-  @Override
-  public Set<Particle> simulate(final Criteria endCriteria, final ParticlesWriter writer) {
+  public List<Particle> simulate(final Criteria endCriteria, final ParticlesWriter writer) {
     List<Particle> currentParticles = initialParticles;
     int iteration = 1;
     double time = 0;
 
-    while (!endCriteria.test(time, currentParticles)) {
+    while (!endCriteria.test(time, currentParticles, currentTimeFlowedParticles)) {
       final Map<Particle, Set<Neighbour>> neighbours = cim.apply(currentParticles, maxRadius, 0);
       currentParticles = nextParticles(neighbours, time);
 
       if (iteration == writerIteration) {
+//        System.out.println("FLOWED: " + flowTimes.size());
         iteration = 0;
         try {
           writer.write(time, neighbours);
@@ -76,16 +76,14 @@ public class GranularMediaSimulator implements Simulator {
 
       time += dt;
       iteration++;
-      if(count >= 1){
-        System.out.println(count);
-      }
-      count = 0;
     }
 
-    return new HashSet<>(currentParticles);
+    return currentParticles;
   }
 
-  private List<Particle> nextParticles(final Map<Particle, Set<Neighbour>> neighbours, double time) {
+  private List<Particle> nextParticles(final Map<Particle, Set<Neighbour>> neighbours,
+      double time) {
+    currentTimeFlowedParticles = 0;
     final List<Particle> nextParticles = new ArrayList<>(neighbours.size());
     final List<Particle> moveToTopParticles = new LinkedList<>();
 
@@ -102,7 +100,7 @@ public class GranularMediaSimulator implements Simulator {
     final List<Particle> topParticles = getTopParticles(nextParticles);
     for (final Particle particle : moveToTopParticles) {
       flowTimes.add(time);
-      count++;
+      currentTimeFlowedParticles++;
       final Particle particleMovedToTop = moveParticleToTop(particle, topParticles);
       nextParticles.add(particleMovedToTop);
       topParticles.add(particleMovedToTop);
