@@ -9,6 +9,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class Scatter2DChart extends Application {
@@ -57,9 +58,12 @@ public class Scatter2DChart extends Application {
 
   @Override
   public void start(final Stage primaryStage) throws Exception {
-    Scatter2DChart.chart = new ScatterChart<>(
-        new NumberAxis(),
-        new NumberAxis());
+    final NumberAxis xAxis = new NumberAxis();
+    final NumberAxis yAxis = new NumberAxis();
+    xAxis.tickLabelFontProperty().set(Font.font(14));
+    yAxis.tickLabelFontProperty().set(Font.font(14));
+
+    Scatter2DChart.chart = new ScatterChart<>(xAxis, yAxis);
     Scatter2DChart.chart.setTitle(Objects.requireNonNull(name));
     Scatter2DChart.chart.setPrefSize(500, 400); // TODO
     primaryStage.setTitle(chart.getTitle());
